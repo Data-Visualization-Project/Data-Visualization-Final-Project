@@ -48,7 +48,7 @@ Details below.
 
 #  4. Step-by-Step Instructions
 
-##  Step 1 — Configure Git (Required every session)
+## Step 1 — Configure Git (Required every session)
 
 ```python
 from getpass import getpass
@@ -61,7 +61,7 @@ name = input("Enter your GitHub name: ")
 
 print("Git identity configured!")
 
----
+```
 
 ## Step 2 — Login with GitHub Username + Token (Hidden)
 
@@ -75,7 +75,7 @@ token = getpass("GitHub Personal Access Token: ")
 repo_url = f"https://{username}:{token}@github.com/Data-Visualization-Project/Data-Visualization-Final-Project.git"
 print("Credentials stored securely.")
 
----
+```
 
 ## Step 3 — Clone the Repository (First Time Only)
 
@@ -88,6 +88,8 @@ If you already cloned it earlier, simply return to the folder:
 ```python
 %cd /content/Data-Visualization-Final-Project
 
+
+```
 
 ##  Step 4 — Pull Latest Changes Before Working
 
