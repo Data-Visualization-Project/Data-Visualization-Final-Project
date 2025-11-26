@@ -85,7 +85,6 @@ print("Credentials stored securely.")
 
 If you already cloned it earlier, simply return to the folder:
 
-```python
 %cd /content/Data-Visualization-Final-Project
 
 
