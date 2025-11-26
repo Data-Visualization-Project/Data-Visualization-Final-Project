@@ -61,8 +61,9 @@ name = input("Enter your GitHub name: ")
 
 print("Git identity configured!")
 
+---
 
-##  Step 2 — Login with GitHub Username + Token (Hidden)
+## Step 2 — Login with GitHub Username + Token (Hidden)
 
 ```python
 from getpass import getpass
@@ -74,8 +75,9 @@ token = getpass("GitHub Personal Access Token: ")
 repo_url = f"https://{username}:{token}@github.com/Data-Visualization-Project/Data-Visualization-Final-Project.git"
 print("Credentials stored securely.")
 
+---
 
-##  Step 3 — Clone the Repository (First Time Only)
+## Step 3 — Clone the Repository (First Time Only)
 
 ```python
 !git clone $repo_url
