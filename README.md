@@ -83,7 +83,7 @@ print("Credentials stored securely.")
 !git clone $repo_url
 %cd Data-Visualization-Final-Project
 
-If you already cloned it earlier, simply return to the folder:
+# If you already cloned it earlier, simply return to the folder:
 
 %cd /content/Data-Visualization-Final-Project
 
@@ -94,7 +94,7 @@ If you already cloned it earlier, simply return to the folder:
 
 ```python
 !git pull $repo_url main
-(This prevents merge conflicts.)
+#(This prevents merge conflicts.)
 
 ```
 
@@ -103,7 +103,7 @@ If you already cloned it earlier, simply return to the folder:
 ```python
 !unzip /content/Data-Visualization-Final-Project/datasetV.zip
 
-Everything you want to push must now appear inside:
+#Everything you want to push must now appear inside:
 
 /content/Data-Visualization-Final-Project
 
@@ -125,7 +125,7 @@ Everything you want to push must now appear inside:
 ```python
 !git push $repo_url main
 
-Your changes will now show up in the GitHub repository.
+#Your changes will now show up in the GitHub repository.
 
 ```
 
