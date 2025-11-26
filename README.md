@@ -93,28 +93,40 @@ If you already cloned it earlier, simply return to the folder:
 
 ##  Step 4 — Pull Latest Changes Before Working
 
+```python
 !git pull $repo_url main
 (This prevents merge conflicts.)
 
+```
+
 ##  Step 5 — Unzip Dataset from GitRepo
+
+```python
 !unzip /content/Data-Visualization-Final-Project/datasetV.zip
 
 Everything you want to push must now appear inside:
 
 /content/Data-Visualization-Final-Project
 
+```
 
 ##  Step 6 — Stage and Commit Your Work
+
+```python
 
 %cd /content/Data-Visualization-Final-Project
 
 !git add .
 !git commit -m "Describe your update here"
 
+```
 
 ##  Step 7 — Push to GitHub
 
+```python
 !git push $repo_url main
 
 Your changes will now show up in the GitHub repository.
+
+```
 
