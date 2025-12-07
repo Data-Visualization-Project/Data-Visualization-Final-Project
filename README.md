@@ -1,4 +1,4 @@
-**Live App:** [Click to open the Interactive Climate Dashboard](https://data-visualization-final-project.streamlit.app/)
+**Live App:** [Click to open the Interactive Climate Dashboard](https://interactive-climate-dashboard.streamlit.app/)
 
 # Team Workflow Guide — Using Google Colab with GitHub (Private Repo)
 
