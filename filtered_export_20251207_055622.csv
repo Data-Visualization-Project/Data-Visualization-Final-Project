@@ -1,7 +1,0 @@
-Year,Country,Avg_Temperature_degC,CO2_Emissions_tons_per_capita,Sea_Level_Rise_mm,Rainfall_mm,Population,Renewable_Energy_pct,Extreme_Weather_Events,Forest_Area_pct
-2000,Germany,9.3,10.1,0,789,82210000,6.2,8,32.0
-2005,Germany,9.5,9.8,10,781,82500000,10.5,11,32.1
-2010,Germany,9.6,9.3,19,802,81780000,16.7,12,32.4
-2015,Germany,10.0,8.8,27,789,82670000,29.5,13,32.5
-2020,Germany,10.4,7.7,36,776,83240000,41.1,16,32.7
-2024,Germany,10.7,7.3,42,768,84079811,46.8,19,33.0

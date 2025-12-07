@@ -1,7 +1,0 @@
-Year,Country,Avg_Temperature_degC,CO2_Emissions_tons_per_capita,Sea_Level_Rise_mm,Rainfall_mm,Population,Renewable_Energy_pct,Extreme_Weather_Events,Forest_Area_pct
-2000,France,12.5,6.0,0,867,60910000,15.3,7,28.6
-2005,France,12.7,5.8,10,852,62960000,17.5,9,29.0
-2010,France,12.8,5.5,19,876,64720000,19.8,11,29.2
-2015,France,13.1,4.6,27,848,66550000,17.5,14,29.4
-2020,France,13.5,4.2,36,862,67390000,19.1,17,30.7
-2024,France,13.8,3.9,42,855,68381334,20.7,19,31.5
