@@ -1,3 +1,5 @@
+**Live App:** [Click to open the Streamlit Dashboard](https://data-visualization-final-project.streamlit.app/)
+
 # Team Workflow Guide — Using Google Colab with GitHub (Private Repo)
 
 Welcome! This guide explains how our team collaborates using:
