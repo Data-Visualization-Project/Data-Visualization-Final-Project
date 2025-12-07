@@ -4,215 +4,243 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import io
+import os
 
-# =====================================================
-# LOAD DATA
-# =====================================================
-df = pd.read_csv("update_temperature.csv")
+# ---------------------------------------------------------------------------
+# DATA LOAD
+# ---------------------------------------------------------------------------
 
-st.set_page_config(page_title="Climate Dashboard", layout="wide")
+@st.cache_data
+def load_data():
+    return pd.read_csv("update_temperature.csv")
+
+df = load_data()
 
 
-# =====================================================
-# SIDEBAR FILTERS
-# =====================================================
-st.sidebar.title("Interactive Filters")
+# ---------------------------------------------------------------------------
+# FILTER SIDEBAR UI
+# ---------------------------------------------------------------------------
 
-years = st.sidebar.slider(
+st.sidebar.header("Interactive Controls")
+
+st.sidebar.markdown("### Filter Data")
+
+# Year Filter
+year_min = int(df["Year"].min())
+year_max = int(df["Year"].max())
+year_range = st.sidebar.slider(
     "Year Range",
-    int(df["Year"].min()),
-    int(df["Year"].max()),
-    (int(df["Year"].min()), int(df["Year"].max()))
+    min_value=year_min,
+    max_value=year_max,
+    value=(year_min, year_max),
+    step=1,
 )
 
-countries = st.sidebar.multiselect(
-    "Countries",
-    options=["All Countries"] + sorted(df["Country"].unique()),
-    default=["All Countries"]
+# Country Filter
+countries = sorted(df["Country"].unique())
+country_select = st.sidebar.multiselect(
+    "Select Countries", ["All Countries"] + countries, default=["All Countries"]
 )
 
+# Temperature filter
 temp_range = st.sidebar.slider(
     "Temperature (°C)",
     float(df["Avg_Temperature_degC"].min()),
     float(df["Avg_Temperature_degC"].max()),
-    (float(df["Avg_Temperature_degC"].min()), float(df["Avg_Temperature_degC"].max()))
+    (
+        float(df["Avg_Temperature_degC"].min()),
+        float(df["Avg_Temperature_degC"].max()),
+    ),
 )
 
+# CO2 filter
 co2_range = st.sidebar.slider(
     "CO2 (tons/capita)",
     float(df["CO2_Emissions_tons_per_capita"].min()),
     float(df["CO2_Emissions_tons_per_capita"].max()),
-    (float(df["CO2_Emissions_tons_per_capita"].min()), float(df["CO2_Emissions_tons_per_capita"].max()))
+    (
+        float(df["CO2_Emissions_tons_per_capita"].min()),
+        float(df["CO2_Emissions_tons_per_capita"].max()),
+    ),
 )
 
+# Renewable filter
 renew_range = st.sidebar.slider(
-    "Renewable Energy (% of total)",
+    "Renewable Energy (%)",
     float(df["Renewable_Energy_pct"].min()),
     float(df["Renewable_Energy_pct"].max()),
-    (float(df["Renewable_Energy_pct"].min()), float(df["Renewable_Energy_pct"].max()))
+    (
+        float(df["Renewable_Energy_pct"].min()),
+        float(df["Renewable_Energy_pct"].max()),
+    ),
 )
 
-st.sidebar.markdown("---")
-export_request = st.sidebar.button("Export Filtered Data")
-
-
-# =====================================================
+# ---------------------------------------------------------------------------
 # APPLY FILTERS
-# =====================================================
-filtered = df.copy()
+# ---------------------------------------------------------------------------
 
-filtered = filtered[
-    (filtered["Year"] >= years[0]) &
-    (filtered["Year"] <= years[1])
+filtered_df = df[
+    (df["Year"] >= year_range[0])
+    & (df["Year"] <= year_range[1])
+    & (df["Avg_Temperature_degC"] >= temp_range[0])
+    & (df["Avg_Temperature_degC"] <= temp_range[1])
+    & (df["CO2_Emissions_tons_per_capita"] >= co2_range[0])
+    & (df["CO2_Emissions_tons_per_capita"] <= co2_range[1])
+    & (df["Renewable_Energy_pct"] >= renew_range[0])
+    & (df["Renewable_Energy_pct"] <= renew_range[1])
 ]
 
-if "All Countries" not in countries:
-    filtered = filtered[filtered["Country"].isin(countries)]
-
-filtered = filtered[
-    (filtered["Avg_Temperature_degC"] >= temp_range[0]) &
-    (filtered["Avg_Temperature_degC"] <= temp_range[1]) &
-    (filtered["CO2_Emissions_tons_per_capita"] >= co2_range[0]) &
-    (filtered["CO2_Emissions_tons_per_capita"] <= co2_range[1]) &
-    (filtered["Renewable_Energy_pct"] >= renew_range[0]) &
-    (filtered["Renewable_Energy_pct"] <= renew_range[1])
-]
+# Country filter
+if "All Countries" not in country_select:
+    filtered_df = filtered_df[filtered_df["Country"].isin(country_select)]
 
 
-# =====================================================
-# ANALYSIS MODE TABS
-# =====================================================
-st.title("Climate Change Interactive Dashboard")
+# ---------------------------------------------------------------------------
+# DOWNLOAD FILTERED DATA BUTTON (working)
+# ---------------------------------------------------------------------------
 
-tabs = st.tabs(["Overview", "Trends", "Correlation", "Temperature", "Renewable Energy"])
+csv_buffer = io.StringIO()
+filtered_df.to_csv(csv_buffer, index=False)
+
+st.sidebar.download_button(
+    label="Export Filtered Data",
+    data=csv_buffer.getvalue(),
+    file_name=f"filtered_export_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv",
+    mime="text/csv",
+)
 
 
-# =====================================================
-# SUMMARY PANEL
-# =====================================================
-st.subheader("Data Summary")
+# ---------------------------------------------------------------------------
+# UI TITLE & SUMMARY
+# ---------------------------------------------------------------------------
 
-st.info(
+st.title("Climate Change Analysis Dashboard")
+
+st.markdown("### Data Summary")
+
+st.write(
     f"""
-    • Showing **{len(filtered):,}** of {len(df):,} records  
-    • Time period: **{filtered['Year'].min()} – {filtered['Year'].max()}**  
-    • Countries: **{filtered['Country'].nunique()}** selected  
-    • Temperature range: **{filtered['Avg_Temperature_degC'].min():.1f}°C – {filtered['Avg_Temperature_degC'].max():.1f}°C**
+**Records Shown:** {len(filtered_df):,}  
+**Countries in View:** {len(filtered_df['Country'].unique())}  
+**Years Covered:** {filtered_df['Year'].min()} to {filtered_df['Year'].max()}  
 """
 )
 
+# ---------------------------------------------------------------------------
+# ANALYSIS MODE SELECTOR
+# ---------------------------------------------------------------------------
 
-# =====================================================
-# QUICK INSIGHTS PANEL
-# =====================================================
-
-st.subheader("Quick Insights")
-
-insights = []
-if len(filtered) > 1:
-    # temp trend
-    temp_fit = np.polyfit(filtered["Year"], filtered["Avg_Temperature_degC"], 1)[0]*10
-    insights.append(f"• Temperature warming rate: {temp_fit:.2f}°C per decade")
-
-    renew_fit = np.polyfit(filtered["Year"], filtered["Renewable_Energy_pct"], 1)[0]
-    insights.append(f"• Renewable energy growth: {renew_fit:.2f}% per year")
-
-    co2_corr = np.corrcoef(filtered["CO2_Emissions_tons_per_capita"], filtered["Avg_Temperature_degC"])[0, 1]
-    insights.append(f"• CO2 vs Temperature correlation: {co2_corr:.3f}")
-
-    evt_fit = np.polyfit(filtered["Year"], filtered["Extreme_Weather_Events"], 1)[0]
-    insights.append(f"• Extreme weather trend: {evt_fit:.2f} events per year")
-
-    st.success("\n".join(insights))
-else:
-    st.warning("Not enough data for insights")
+analysis_mode = st.selectbox(
+    "Select Analysis Mode",
+    ["Overview", "Trends", "Correlation", "Temperature", "Renewable"],
+)
 
 
-# =====================================================
-# VIEW 1 — OVERVIEW TAB
-# =====================================================
-with tabs[0]:
-    st.header("Overview Dashboard")
+# ---------------------------------------------------------------------------
+# VISUALIZATION FUNCTIONS
+# ---------------------------------------------------------------------------
 
-    if len(filtered) > 0:
-        treemap_data = filtered.groupby("Country")[["Population", "Avg_Temperature_degC"]].mean().reset_index()
+def show_treemap():
+    treemap_data = filtered_df.groupby('Country').agg({
+        'CO2_Emissions_tons_per_capita': 'mean',
+        'Avg_Temperature_degC': 'mean',
+        'Extreme_Weather_Events': 'mean',
+        'Population': 'mean'
+    }).reset_index()
 
-        fig = px.treemap(
-            treemap_data,
-            path=["Country"],
-            values="Population",
-            color="Avg_Temperature_degC",
-            color_continuous_scale="RdYlBu_r"
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-# =====================================================
-# VIEW 2 — TRENDS TAB
-# =====================================================
-with tabs[1]:
-    st.header("Climate Indicators")
-
-    yearly = filtered.groupby("Year")[["Avg_Temperature_degC", "CO2_Emissions_tons_per_capita"]].mean()
-
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=yearly.index, y=yearly["Avg_Temperature_degC"], mode="lines+markers", name="Temperature"))
-    fig.add_trace(go.Scatter(x=yearly.index, y=yearly["CO2_Emissions_tons_per_capita"], mode="lines+markers", name="CO2"))
-
+    fig = px.treemap(
+        treemap_data,
+        path=['Country'],
+        values='Population',
+        color='Avg_Temperature_degC',
+        color_continuous_scale='RdYlBu_r',
+        title='Country Climate Impact Distribution'
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 
-# =====================================================
-# VIEW 3 — CORRELATION TAB
-# =====================================================
-with tabs[2]:
-    st.header("CO2 & Temperature Relationship")
+def show_trend_panels():
+    yearly = filtered_df.groupby('Year').agg({
+        'Avg_Temperature_degC': 'mean',
+        'CO2_Emissions_tons_per_capita': 'mean',
+        'Renewable_Energy_pct': 'mean',
+        'Extreme_Weather_Events': 'mean'
+    }).reset_index()
 
-    yr = filtered["Year"].max()
-    latest = filtered[filtered["Year"] == yr]
+    fig = make_subplots(
+        rows=2, cols=2,
+        subplot_titles=("Temperature", "CO₂ Emissions", "Renewable Energy", "Extreme Events")
+    )
+
+    fig.add_trace(
+        go.Scatter(x=yearly['Year'], y=yearly['Avg_Temperature_degC'], mode="lines+markers", name="Temp"),
+        1, 1
+    )
+    fig.add_trace(
+        go.Scatter(x=yearly['Year'], y=yearly['CO2_Emissions_tons_per_capita'], mode="lines+markers", name="CO2"),
+        1, 2
+    )
+    fig.add_trace(
+        go.Scatter(x=yearly['Year'], y=yearly['Renewable_Energy_pct'], mode="lines+markers", name="Renewable"),
+        2, 1
+    )
+    fig.add_trace(
+        go.Scatter(x=yearly['Year'], y=yearly['Extreme_Weather_Events'], mode="lines+markers", name="Events"),
+        2, 2
+    )
+
+    fig.update_layout(height=600, title="Climate Trends", template="plotly_white")
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def show_correlation():
+    latest_year = filtered_df['Year'].max()
+    latest = filtered_df[filtered_df['Year'] == latest_year]
 
     fig = px.scatter(
         latest,
         x="CO2_Emissions_tons_per_capita",
         y="Avg_Temperature_degC",
+        size="Population",
         color="Country",
-        size="Population"
+        title=f"CO2 vs Temperature ({latest_year})"
     )
     st.plotly_chart(fig, use_container_width=True)
 
 
-# =====================================================
-# VIEW 4 — TEMPERATURE HEATMAP TAB
-# =====================================================
-with tabs[3]:
-    st.header("Temperature Distribution")
+def show_temperature_heatmap():
+    heatmap_data = filtered_df.groupby(['Country', 'Year'])['Avg_Temperature_degC'].mean().reset_index()
+    pivot = heatmap_data.pivot(index="Country", columns="Year", values="Avg_Temperature_degC")
 
-    pivot = filtered.groupby(["Country", "Year"])["Avg_Temperature_degC"].mean().reset_index()
-    heat = pivot.pivot(index="Country", columns="Year", values="Avg_Temperature_degC").fillna(0)
-
-    fig = go.Figure(data=go.Heatmap(
-        z=heat.values, x=heat.columns, y=heat.index, colorscale="RdYlBu_r"
-    ))
-
+    fig = px.imshow(pivot, color_continuous_scale="RdBu_r", aspect="auto")
+    fig.update_layout(title="Temperature Heatmap")
     st.plotly_chart(fig, use_container_width=True)
 
 
-# =====================================================
-# VIEW 5 — RENEWABLE ENERGY TAB
-# =====================================================
-with tabs[4]:
-    st.header("Renewable Energy Indicators")
-
-    renewable = filtered.groupby("Year")["Renewable_Energy_pct"].mean()
-
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=renewable.index, y=renewable.values, mode="lines+markers"))
-    st.plotly_chart(fig, use_container_width=True)
+def show_renewable_analysis():
+    show_trend_panels()
 
 
-# =====================================================
-# DATA EXPORT FUNCTION
-# =====================================================
-if export_request:
-    export_file = f"filtered_export_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.csv"
-    filtered.to_csv(export_file, index=False)
-    st.sidebar.success(f"Exported: {export_file}")
+# ---------------------------------------------------------------------------
+# DISPLAY BASED ON MODE
+# ---------------------------------------------------------------------------
+
+if len(filtered_df) == 0:
+    st.warning("No data available for selected filters")
+else:
+    if analysis_mode == "Overview":
+        show_treemap()
+        show_trend_panels()
+
+    elif analysis_mode == "Trends":
+        show_trend_panels()
+
+    elif analysis_mode == "Correlation":
+        show_correlation()
+
+    elif analysis_mode == "Temperature":
+        show_temperature_heatmap()
+
+    elif analysis_mode == "Renewable":
+        show_renewable_analysis()
